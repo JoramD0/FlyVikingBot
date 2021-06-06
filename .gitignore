@@ -2,3 +2,5 @@ credentials.json
 __pycache__
 .venv
 .vscode
+run_windows.bat
+discordBot.log

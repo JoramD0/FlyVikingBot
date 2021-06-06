@@ -1,7 +1,10 @@
-import discord, fsaInterface, json
+import discord, fsaInterface, json, logging
+from discord.ext import commands
 from discord_slash import SlashCommand
 from discord_slash.utils.manage_commands import create_option, create_permission
 from discord_slash.model import SlashCommandPermissionType
+
+logging.basicConfig(filename="discordBot.log", encoding="utf-8", level=logging.INFO, format="%(asctime)s %(name)s %(levelname)s: %(message)s")
 
 # Get credentials
 with open("credentials.json", "r", encoding="utf-8") as credentialsFile:
@@ -11,7 +14,7 @@ with open("credentials.json", "r", encoding="utf-8") as credentialsFile:
 channelSystemMessages = 739160821740994631
 
 intents = discord.Intents.all()
-client = discord.Client(intents=intents)
+client = commands.Bot(command_prefix="!", intents=intents)
 slash = SlashCommand(client, sync_commands=True)
 
 guildId = 631900777794764830
@@ -20,7 +23,7 @@ adminRole = 631901856997834778
 # Bot active
 @client.event
 async def on_ready():
-    print(f"Bot logged in as {client}")
+    logging.info(f"Bot logged in as {client}")
 
 # User left message
 @client.event
