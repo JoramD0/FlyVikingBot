@@ -36,6 +36,7 @@ async def on_member_remove(member):
 async def _stats(ctx):
     data = fsaInterface.getAirlineStats()
     if not data:
+        logging.error("Could not retreive data from FSAirlines")
         await ctx.send(":x: ERROR: Could not retreive data from FSAirlines", delete_after=5)
     else:
         embed = discord.Embed(
