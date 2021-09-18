@@ -6,3 +6,4 @@ Simple Discord bot for FlyViking
 - message on user leaving server
 - /clear *(amount)*
 - /airline_statistics
+- /paint_lookup *(query)*

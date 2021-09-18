@@ -1,4 +1,4 @@
-import discord, fsaInterface, json, logging
+import discord, fsaInterface, websiteInterface, json, logging
 from discord.ext import commands
 from discord_slash import SlashCommand
 from discord_slash.utils.manage_commands import create_option, create_permission
@@ -109,5 +109,45 @@ async def _clear(ctx, amount):
         await ctx.send(content=f":white_check_mark: Deleted {len(deleted)} message{multiple}", delete_after=5)
     else:
         await ctx.send(content=f":x: Amount needs to be between 1 and 50", delete_after=5)
+
+@slash.slash(
+    name="Paint_Lookup",
+    description="Lookup aircraft paint on the website",
+    guild_ids=[guildId],
+    options=[
+        create_option(
+            name = "query",
+            description = "",
+            option_type = 3,
+            required = True
+        )
+    ]
+)
+async def _stats(ctx, query):
+    data = websiteInterface.fileQuery(query)
+    if data is False:
+        logging.error("Could not retreive data from website")
+        await ctx.send(f":x: ERROR: Could not retreive data from website", delete_after=5)
+    elif type(data) is int:
+        if data > 1:
+            logging.info("Too many matches")
+            await ctx.send(":x: ERROR: Too many matches", delete_after=5)
+        else:
+            logging.info("No matches")
+            await ctx.send(":x: ERROR: No matches", delete_after=5)
+    else:
+        embed = discord.Embed(
+            title = data["title"],
+            url = data["url"],
+            timestamp = data["updated"],
+            color = 0xed2001
+        )
+        embed.set_author(
+            name = data["author"]["name"]
+        )
+        embed.set_image(
+            url = data["primaryScreenshot"]["url"]
+        )
+        await ctx.send(embed=embed)
 
 client.run(credentials["discordBotToken"])
