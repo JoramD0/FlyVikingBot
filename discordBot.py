@@ -117,7 +117,7 @@ async def _clear(ctx, amount):
     options=[
         create_option(
             name = "query",
-            description = "",
+            description = "Search term",
             option_type = 3,
             required = True
         )
@@ -139,15 +139,23 @@ async def _stats(ctx, query):
         embed = discord.Embed(
             title = data["title"],
             url = data["url"],
-            timestamp = data["updated"],
             color = 0xed2001
         )
-        embed.set_author(
-            name = data["author"]["name"]
-        )
-        embed.set_image(
-            url = data["primaryScreenshot"]["url"]
-        )
+        if data["author"]["photoUrlIsDefault"]:
+            embed.set_author(
+                name = data["author"]["name"],
+                url = data["author"]["profileUrl"]
+            )
+        else:
+            embed.set_author(
+                name = data["author"]["name"],
+                url = data["author"]["profileUrl"],
+                icon_url = data["author"]["photoUrl"]
+            )
+        if data["primaryScreenshot"] is not None:
+            embed.set_image(
+                url = data["primaryScreenshot"]["url"]
+            )
         await ctx.send(embed=embed)
 
 client.run(credentials["discordBotToken"])

@@ -6,10 +6,10 @@ with open("credentials.json", "r", encoding="utf-8") as credentialsFile:
 baseUrl = "https://flyviking.net/api/index.php?"
 apiKey = credentials["websiteKey"]
 
-doNotTrack = True # Only for testing purposes.
+doNotTrack = False # Only for testing purposes.
 
 def fileQuery(q):
-    r = requests.get(f"{baseUrl}/core/search&q={q}&type=downloads_file&doNotTrack={doNotTrack}&key={apiKey}")
+    r = requests.get(f"{baseUrl}/core/search&q={q}&type=downloads_file&search_and_or=and&doNotTrack={doNotTrack}&key={apiKey}")
 
     json_data = r.json()
     if json_data["totalResults"] == 1:
