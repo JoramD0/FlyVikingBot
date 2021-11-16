@@ -12,6 +12,7 @@ with open("credentials.json", "r", encoding="utf-8") as credentialsFile:
 
 # Common channel defines
 channelSystemMessages = 739160821740994631
+channelScreenshots = 631950027476172810
 
 intents = discord.Intents.all()
 client = commands.Bot(command_prefix="!", intents=intents)
@@ -30,6 +31,20 @@ async def on_ready():
 async def on_member_remove(member):
     ch = client.get_channel(channelSystemMessages)
     await ch.send(f"**{member}** left the server.")
+
+# Screenshot channel image check
+@client.event
+async def on_message(message):
+    logging.info(message)
+    if message.channel == client.get_channel(channelScreenshots):
+        logging.info(f"{message.content}")
+        if len(message.attachments) > 0:
+            True
+        elif message.content.endswith(".jpg") or message.content.endswith(".png"):
+            True
+        else:
+            logging.info(f"Deleting message without image in #screenshots: {message}")
+            await message.delete()
 
 # Slash commands
 @slash.slash(name="Airline_Statistics", description="Gets various airline statistics from FSAirlines", guild_ids=[guildId])
