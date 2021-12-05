@@ -1,9 +1,6 @@
 import feedparser, re, time
 
-RSS_URL = "https://flyviking.net/gallery/images.xml/"
-PRETTY_NAME = "gallery" # Used for discord type (gallery or announcement)
-
-def read_feed(rss_url, pretty_name, gallery_send):
+def read_feed(rss_url, pretty_name, callback):
 # Read last modified and pull feed
     try:
         with open(f"{pretty_name}_rss_trackfile", "r") as trackfile:
@@ -28,17 +25,8 @@ def read_feed(rss_url, pretty_name, gallery_send):
                 result = re.search('src="([^"]+)"', entry.summary).group()
                 print(result[5:-1]) # This is the link to the image (get this posted on Discord somehow)
                 if pretty_name == "gallery":
-                    gallery_send(result[5:-1])
+                    callback(result[5:-1])
                 elif pretty_name == "announcement":
                     NotImplemented
 
-def start_loop():
-    starttime = time.time()
-    while True:
-        print("tick")
-        read_feed(RSS_URL, PRETTY_NAME)
-        time.sleep(60.0 - ((time.time()) - starttime) % 60.0)
-
-#TODO: Make this work for more than 1 RSS feed
-#TODO: Execute every x (60?) seconds
 #TODO: Post to Discord (including to discord type)

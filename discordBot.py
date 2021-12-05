@@ -26,21 +26,23 @@ adminRole = 631901856997834778
 @client.event
 async def on_ready():
     logging.info(f"Bot logged in as {client}")
+    read_feed_discord.start()
 
+# rssParser loop
 @tasks.loop(seconds=60.0)
 async def read_feed_discord():
-    rssParser.read_feed("https://flyviking.net/gallery/images.xml/", "gallery", "gallery_send")
+    await rssParser.read_feed("https://flyviking.net/gallery/images.xml/", "gallery", callback=gallery_send)
+
+@client.event
+async def gallery_send(image):
+    ch = client.get_channel(channelBotDevelopment) #TODO: change to proper channel after testing
+    await ch.send(image)
 
 # User left message
 @client.event
 async def on_member_remove(member):
     ch = client.get_channel(channelSystemMessages)
     await ch.send(f"**{member}** left the server.")
-
-@client.event
-async def gallery_send(image):
-    ch = client.get_channel(channelBotDevelopment) #TODO: change to proper channel after testing
-    await ch.send(image)
 
 # Screenshot channel image check
 @client.event
