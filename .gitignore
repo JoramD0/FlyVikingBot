@@ -4,4 +4,4 @@ __pycache__
 .vscode
 run_windows.bat
 discordBot.log
-gallery_rss_trackfile
+*_rss_trackfile

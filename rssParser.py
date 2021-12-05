@@ -23,8 +23,8 @@ async def read_feed(rss_url, pretty_name, callback):
 
             # Check if entry was posted since last check
             if time.mktime(entry.published_parsed) > time.mktime(last_check):
-                result = re.search('src="([^"]+)"', entry.summary).group()
                 if pretty_name == "gallery":
+                    result = re.search('src="([^"]+)"', entry.summary).group()
                     await callback(result[5:-1])
                 elif pretty_name == "announcement":
                     NotImplemented
