@@ -1,4 +1,4 @@
-import discord, fsaInterface, websiteInterface, json, logging
+import discord, fsaInterface, websiteInterface, json, logging, rssParser
 from discord.ext import commands
 from discord_slash import SlashCommand
 from discord_slash.utils.manage_commands import create_option, create_permission
@@ -13,6 +13,7 @@ with open("credentials.json", "r", encoding="utf-8") as credentialsFile:
 # Common channel defines
 channelSystemMessages = 739160821740994631
 channelScreenshots = 631950027476172810
+channelBotDevelopment = 850419733273640990
 
 intents = discord.Intents.all()
 client = commands.Bot(command_prefix="!", intents=intents)
@@ -25,12 +26,18 @@ adminRole = 631901856997834778
 @client.event
 async def on_ready():
     logging.info(f"Bot logged in as {client}")
+    rssParser.start_loop()
 
 # User left message
 @client.event
 async def on_member_remove(member):
     ch = client.get_channel(channelSystemMessages)
     await ch.send(f"**{member}** left the server.")
+
+@client.event
+async def gallery_send(image):
+    ch = client.get_channel(channelBotDevelopment) #TODO: change to proper channel after testing
+    await ch.send(image)
 
 # Screenshot channel image check
 @client.event
