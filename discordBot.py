@@ -1,5 +1,5 @@
 import discord, fsaInterface, websiteInterface, json, logging, rssParser
-from discord.ext import commands
+from discord.ext import commands, tasks
 from discord_slash import SlashCommand
 from discord_slash.utils.manage_commands import create_option, create_permission
 from discord_slash.model import SlashCommandPermissionType
@@ -26,7 +26,10 @@ adminRole = 631901856997834778
 @client.event
 async def on_ready():
     logging.info(f"Bot logged in as {client}")
-    rssParser.start_loop()
+
+@tasks.loop(seconds=60.0)
+async def read_feed_discord():
+    rssParser.read_feed("https://flyviking.net/gallery/images.xml/", "gallery", "gallery_send")
 
 # User left message
 @client.event

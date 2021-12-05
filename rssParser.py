@@ -1,9 +1,9 @@
-import feedparser, re, time, discordBot
+import feedparser, re, time
 
 RSS_URL = "https://flyviking.net/gallery/images.xml/"
 PRETTY_NAME = "gallery" # Used for discord type (gallery or announcement)
 
-def read_feed(rss_url, pretty_name):
+def read_feed(rss_url, pretty_name, gallery_send):
 # Read last modified and pull feed
     try:
         with open(f"{pretty_name}_rss_trackfile", "r") as trackfile:
@@ -28,7 +28,7 @@ def read_feed(rss_url, pretty_name):
                 result = re.search('src="([^"]+)"', entry.summary).group()
                 print(result[5:-1]) # This is the link to the image (get this posted on Discord somehow)
                 if pretty_name == "gallery":
-                    discordBot.gallery_send(result[5:-1])
+                    gallery_send(result[5:-1])
                 elif pretty_name == "announcement":
                     NotImplemented
 
