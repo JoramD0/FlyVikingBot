@@ -35,7 +35,7 @@ async def read_feed_discord():
 
 @client.event
 async def gallery_send(image):
-    ch = client.get_channel(channelBotDevelopment) #TODO: change to proper channel after testing
+    ch = client.get_channel(channelScreenshots)
     await ch.send(image)
 
 # User left message
