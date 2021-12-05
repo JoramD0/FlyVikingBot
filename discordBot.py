@@ -11,8 +11,9 @@ with open("credentials.json", "r", encoding="utf-8") as credentialsFile:
     credentials = json.load(credentialsFile)
 
 # Common channel defines
-channelSystemMessages = 739160821740994631
+channelAnnouncements = 631949277559783457
 channelScreenshots = 631950027476172810
+channelSystemMessages = 739160821740994631
 channelBotDevelopment = 850419733273640990
 
 intents = discord.Intents.all()
@@ -31,12 +32,26 @@ async def on_ready():
 # rssParser loop
 @tasks.loop(seconds=60.0)
 async def read_feed_discord():
-    await rssParser.read_feed("https://flyviking.net/gallery/images.xml/", "gallery", callback=gallery_send)
+    await rssParser.read_feed("https://flyviking.net/rss/1-gallery.xml/", "gallery", callback=gallery_send)
+    await rssParser.read_feed("https://flyviking.net/rss/3-announcements.xml/", "announcement", callback=announcement_send)
 
 @client.event
 async def gallery_send(image):
     ch = client.get_channel(channelScreenshots)
     await ch.send(image)
+
+@client.event
+async def announcement_send(list):
+    embed = discord.Embed(
+        title = list[0],
+        url = list[1],
+        color = 0xed2001
+    )
+    embed.set_thumbnail(
+        url = list[2]
+    )
+    ch = client.get_channel(channelAnnouncements)
+    await ch.send("@everyone", embed=embed, allowed_mentions=discord.AllowedMentions.all())
 
 # User left message
 @client.event
@@ -46,7 +61,7 @@ async def on_member_remove(member):
 
 # Screenshot channel image check
 @client.event
-async def on_message(message):
+async def on_message(message): #TODO: Remove once screenshot channel is locked
     logging.info(message)
     if message.channel == client.get_channel(channelScreenshots):
         logging.info(f"{message.content}")
