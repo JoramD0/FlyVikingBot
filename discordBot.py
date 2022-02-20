@@ -1,5 +1,5 @@
-import discord, fsaInterface, websiteInterface, json, logging
-from discord.ext import commands
+import discord, fsaInterface, websiteInterface, json, logging, rssParser
+from discord.ext import commands, tasks
 from discord_slash import SlashCommand
 from discord_slash.utils.manage_commands import create_option, create_permission
 from discord_slash.model import SlashCommandPermissionType
@@ -11,8 +11,10 @@ with open("credentials.json", "r", encoding="utf-8") as credentialsFile:
     credentials = json.load(credentialsFile)
 
 # Common channel defines
-channelSystemMessages = 739160821740994631
+channelAnnouncements = 631949277559783457
 channelScreenshots = 631950027476172810
+channelSystemMessages = 739160821740994631
+channelBotDevelopment = 850419733273640990
 
 intents = discord.Intents.all()
 client = commands.Bot(command_prefix="!", intents=intents)
@@ -25,6 +27,31 @@ adminRole = 631901856997834778
 @client.event
 async def on_ready():
     logging.info(f"Bot logged in as {client}")
+    read_feed_discord.start()
+
+# rssParser loop
+@tasks.loop(seconds=60.0)
+async def read_feed_discord():
+    await rssParser.read_feed("https://flyviking.net/rss/1-gallery.xml/", "gallery", callback=gallery_send)
+    await rssParser.read_feed("https://flyviking.net/rss/3-announcements.xml/", "announcement", callback=announcement_send)
+
+@client.event
+async def gallery_send(image):
+    ch = client.get_channel(channelScreenshots)
+    await ch.send(image)
+
+@client.event
+async def announcement_send(list):
+    embed = discord.Embed(
+        title = list[0],
+        url = list[1],
+        color = 0xed2001
+    )
+    embed.set_thumbnail(
+        url = list[2]
+    )
+    ch = client.get_channel(channelAnnouncements)
+    await ch.send("@everyone", embed=embed, allowed_mentions=discord.AllowedMentions.all())
 
 # User left message
 @client.event
@@ -34,7 +61,7 @@ async def on_member_remove(member):
 
 # Screenshot channel image check
 @client.event
-async def on_message(message):
+async def on_message(message): #TODO: Remove once screenshot channel is locked
     logging.info(message)
     if message.channel == client.get_channel(channelScreenshots):
         logging.info(f"{message.content}")
