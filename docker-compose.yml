@@ -1,0 +1,11 @@
+version: '3'
+
+services:
+    build: .
+    image: joramd/flyviking-discord-bot
+    container_name: flyviking-discord-bot
+    restart: always
+    volumes:
+        - ./discordBot.log:/app/discordBot.log
+        - ./announcement_rss_trackfile:/app/announcement_rss_trackfile
+        - ./gallery_rss_trackfile:/app/gallery_rss_trackfile
