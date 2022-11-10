@@ -1,8 +1,4 @@
-import discord, fsaInterface, websiteInterface, json, logging, rssParser
-from discord.ext import commands, tasks
-from discord_slash import SlashCommand
-from discord_slash.utils.manage_commands import create_option, create_permission
-from discord_slash.model import SlashCommandPermissionType
+import fsaInterface, websiteInterface, json, logging, rssParser, asyncio, interactions
 
 logging.basicConfig(filename="discordBot.log", encoding="utf-8", level=logging.INFO, format="%(asctime)s %(name)s %(levelname)s: %(message)s")
 
@@ -10,39 +6,36 @@ logging.basicConfig(filename="discordBot.log", encoding="utf-8", level=logging.I
 with open("credentials.json", "r", encoding="utf-8") as credentialsFile:
     credentials = json.load(credentialsFile)
 
-# Common channel defines
-channelAnnouncements = 631949277559783457
-channelScreenshots = 631950027476172810
-channelSystemMessages = 739160821740994631
-channelBotDevelopment = 850419733273640990
+bot = interactions.Client(token=credentials["discordBotToken"], logging=logging.INFO)
 
-intents = discord.Intents.all()
-client = commands.Bot(command_prefix="!", intents=intents)
-slash = SlashCommand(client, sync_commands=True)
+# Roles
+role_everyone = 631900777794764830
 
-guildId = 631900777794764830
-adminRole = 631901856997834778
+# Channels
+channel_announcements = 631949277559783457
+channel_screenshots = 631950027476172810
 
 # Bot active
-@client.event
+@bot.event
 async def on_ready():
-    logging.info(f"Bot logged in as {client}")
-    read_feed_discord.start()
+    logging.info(f"Bot logged in as {bot}")
+    asyncio.Task(read_feed_discord())
 
 # rssParser loop
-@tasks.loop(seconds=60.0)
 async def read_feed_discord():
-    await rssParser.read_feed("https://flyviking.net/rss/1-gallery.xml/", "gallery", callback=gallery_send)
-    await rssParser.read_feed("https://flyviking.net/rss/3-announcements.xml/", "announcement", callback=announcement_send)
+    while True:
+        await rssParser.read_feed("https://flyviking.net/rss/1-gallery.xml/", "gallery", callback=gallery_send)
+        await rssParser.read_feed("https://flyviking.net/rss/3-announcements.xml/", "announcement", callback=announcement_send)
+        await asyncio.sleep(60)
 
-@client.event
+@bot.event
 async def gallery_send(image):
-    ch = client.get_channel(channelScreenshots)
-    await ch.send(image)
+    channel = await interactions.get(bot, interactions.Channel, object_id=850419733273640990)
+    await channel.send(image)
 
-@client.event
+@bot.event
 async def announcement_send(list):
-    embed = discord.Embed(
+    embed = interactions.Embed(
         title = list[0],
         url = list[1],
         color = 0xed2001
@@ -50,38 +43,21 @@ async def announcement_send(list):
     embed.set_thumbnail(
         url = list[2]
     )
-    ch = client.get_channel(channelAnnouncements)
-    await ch.send("@everyone", embed=embed, allowed_mentions=discord.AllowedMentions.all())
-
-# User left message
-@client.event
-async def on_member_remove(member):
-    ch = client.get_channel(channelSystemMessages)
-    await ch.send(f"**{member}** left the server.")
-
-# Screenshot channel image check
-@client.event
-async def on_message(message): #TODO: Remove once screenshot channel is locked
-    logging.info(message)
-    if message.channel == client.get_channel(channelScreenshots):
-        logging.info(f"{message.content}")
-        if len(message.attachments) > 0:
-            True
-        elif message.content.endswith(".jpg") or message.content.endswith(".png"):
-            True
-        else:
-            logging.info(f"Deleting message without image in #screenshots: {message}")
-            await message.delete()
+    ch = await interactions.get(bot, interactions.Channel, object_id=850419733273640990)
+    await ch.send("@everyone", embeds=embed, allowed_mentions=interactions.AllowedMentions(roles=[role_everyone]))
 
 # Slash commands
-@slash.slash(name="Airline_Statistics", description="Gets various airline statistics from FSAirlines", guild_ids=[guildId])
-async def _stats(ctx):
+@bot.command(
+    name="airline_statistics",
+    description="Gets various airline statistics from FSAirlines"
+)
+async def airline_statistics(ctx: interactions.CommandContext):
     data = fsaInterface.getAirlineStats()
     if not data:
         logging.error("Could not retreive data from FSAirlines")
-        await ctx.send(":x: ERROR: Could not retreive data from FSAirlines", delete_after=5)
+        await ctx.send(":x: ERROR: Could not retreive data from FSAirlines", ephemeral=True)
     else:
-        embed = discord.Embed(
+        embed = interactions.Embed(
             title = "Airline Statistics",
             description = "Various airline-wide statistics",
             color = 0xed2001
@@ -121,64 +97,62 @@ async def _stats(ctx):
             value = f"{int(data['packages_kg']):,}kg",
             inline = True
         )
-        await ctx.send(embed=embed)
+        await ctx.send(embeds=embed)
 
-@slash.slash(
-    name="Clear",
+@bot.command(
+    name="clear",
     description="Clears multiple message",
-    guild_ids=[guildId],
-    default_permission=False,
-    permissions={
-        guildId: [
-            create_permission(adminRole, SlashCommandPermissionType.ROLE, True),
-        ]
-    },
+    default_member_permissions=interactions.Permissions.ADMINISTRATOR,
     options=[
-        create_option(
+        interactions.Option(
             name = "amount",
             description = "Amount of messages to clear",
-            option_type = 4,
+            type = interactions.OptionType.INTEGER,
             required = True
         )
     ]
 )
-async def _clear(ctx, amount):
+async def clear(ctx: interactions.CommandContext, amount: int):
     if 0 < amount <= 50:
-        deleted = await ctx.channel.purge(limit=amount, bulk=True)
+        channel = await ctx.get_channel()
+        deleted = await channel.purge(amount, bulk=True, reason=None)
         multiple = ""
         if len(deleted) != 1:
             multiple = "s"
-        await ctx.send(content=f":white_check_mark: Deleted {len(deleted)} message{multiple}", delete_after=5)
+        await ctx.send(content=f":white_check_mark: Deleted {len(deleted)} message{multiple}", ephemeral=True)
     else:
-        await ctx.send(content=f":x: Amount needs to be between 1 and 50", delete_after=5)
+        await ctx.send(content=f":x: Amount needs to be between 1 and 50", ephemeral=True)
 
-@slash.slash(
-    name="Paint_Lookup",
+@bot.command(
+    name="paint_lookup",
     description="Lookup aircraft paint on the website",
-    guild_ids=[guildId],
     options=[
-        create_option(
+        interactions.Option(
             name = "query",
             description = "Search term",
-            option_type = 3,
+            type = interactions.OptionType.STRING,
             required = True
         )
     ]
 )
-async def _stats(ctx, query):
+async def paint_lookup(ctx: interactions.CommandContext, query: str):
     data = websiteInterface.fileQuery(query)
     if data is False:
         logging.error("Could not retreive data from website")
-        await ctx.send(f":x: ERROR: Could not retreive data from website", delete_after=5)
+        await ctx.send(f":x: ERROR: Could not retreive data from website", ephemeral=True)
     elif type(data) is int:
         if data > 1:
             logging.info("Too many matches")
-            await ctx.send(":x: ERROR: Too many matches", delete_after=5)
+            await ctx.send(":x: ERROR: Too many matches", ephemeral=True)
+            await asyncio.sleep(5)
+            await ctx.delete()
         else:
             logging.info("No matches")
-            await ctx.send(":x: ERROR: No matches", delete_after=5)
+            await ctx.send(":x: ERROR: No matches", ephemeral=True)
+            await asyncio.sleep(5)
+            await ctx.delete()
     else:
-        embed = discord.Embed(
+        embed = interactions.Embed(
             title = data["title"],
             url = data["url"],
             color = 0xed2001
@@ -198,6 +172,6 @@ async def _stats(ctx, query):
             embed.set_image(
                 url = data["primaryScreenshot"]["url"]
             )
-        await ctx.send(embed=embed)
+        await ctx.send(embeds=embed)
 
-client.run(credentials["discordBotToken"])
+bot.start()
