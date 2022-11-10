@@ -144,13 +144,9 @@ async def paint_lookup(ctx: interactions.CommandContext, query: str):
         if data > 1:
             logging.info("Too many matches")
             await ctx.send(":x: ERROR: Too many matches", ephemeral=True)
-            await asyncio.sleep(5)
-            await ctx.delete()
         else:
             logging.info("No matches")
             await ctx.send(":x: ERROR: No matches", ephemeral=True)
-            await asyncio.sleep(5)
-            await ctx.delete()
     else:
         embed = interactions.Embed(
             title = data["title"],
