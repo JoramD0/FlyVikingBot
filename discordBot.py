@@ -30,7 +30,7 @@ async def read_feed_discord():
 
 @bot.event
 async def gallery_send(image):
-    channel = await interactions.get(bot, interactions.Channel, object_id=850419733273640990)
+    channel = await interactions.get(bot, interactions.Channel, object_id=631950027476172810)
     await channel.send(image)
 
 @bot.event
@@ -43,7 +43,7 @@ async def announcement_send(list):
     embed.set_thumbnail(
         url = list[2]
     )
-    ch = await interactions.get(bot, interactions.Channel, object_id=850419733273640990)
+    ch = await interactions.get(bot, interactions.Channel, object_id=channel_announcements)
     await ch.send("@everyone", embeds=embed, allowed_mentions=interactions.AllowedMentions(roles=[role_everyone]))
 
 # Slash commands
