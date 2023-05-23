@@ -11,3 +11,4 @@ services:
       - ./discordBot.log:/app/discordBot.log
       - ./announcement_rss_trackfile:/app/announcement_rss_trackfile
       - ./gallery_rss_trackfile:/app/gallery_rss_trackfile
+      - ./aivlasoft_rss_trackfile:/app/aivlasoft_rss_trackfile
