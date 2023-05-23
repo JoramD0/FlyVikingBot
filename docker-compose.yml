@@ -6,6 +6,7 @@ services:
     image: joramd/flyviking-discord-bot
     container_name: flyviking-discord-bot
     restart: always
+    stop_signal: SIGKILL # Skip grace period
     volumes:
       - ./discordBot.log:/app/discordBot.log
       - ./announcement_rss_trackfile:/app/announcement_rss_trackfile
