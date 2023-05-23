@@ -8,4 +8,6 @@ services:
     restart: always
     stop_signal: SIGKILL # Skip grace period
     volumes:
-      - ./live:/app
+      - ./discordBot.log:/app/discordBot.log
+      - ./announcement_rss_trackfile:/app/announcement_rss_trackfile
+      - ./gallery_rss_trackfile:/app/gallery_rss_trackfile
