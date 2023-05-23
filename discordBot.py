@@ -13,7 +13,15 @@ role_everyone = 631900777794764830
 
 # Channels
 channel_announcements = 631949277559783457
+channel_news = 672891056001384488
 channel_screenshots = 631950027476172810
+channel_development = 850419733273640990
+
+# Custom emojis
+emoji_flyvikingv = "<:FlyVikingV:696048915463798835>"
+emoji_aivlasoft_pda = "<:aivlasoft_pda:1110634345410084924>"
+emoji_aivlasoft_server = "<:aivlasoft_server:1110634344227278978>"
+emoji_arma = "<:arma:696048882202968094>"
 
 # Bot active
 @bot.event
@@ -24,13 +32,15 @@ async def on_ready():
 # rssParser loop
 async def read_feed_discord():
     while True:
+        # ("link", "pretty_name", callback)
         await rssParser.read_feed("https://flyviking.net/rss/1-gallery.xml/", "gallery", callback=gallery_send)
         await rssParser.read_feed("https://flyviking.net/rss/3-announcements.xml/", "announcement", callback=announcement_send)
+        await rssParser.read_feed("https://forum.aivlasoft.com/forum/18-announcements.xml/", "news", callback=aivlasoft_send)
         await asyncio.sleep(60)
 
 @bot.event
 async def gallery_send(image):
-    channel = await interactions.get(bot, interactions.Channel, object_id=631950027476172810)
+    channel = await interactions.get(bot, interactions.Channel, object_id=channel_screenshots)
     await channel.send(image)
 
 @bot.event
@@ -45,6 +55,11 @@ async def announcement_send(list):
     )
     ch = await interactions.get(bot, interactions.Channel, object_id=channel_announcements)
     await ch.send("@everyone", embeds=embed, allowed_mentions=interactions.AllowedMentions(roles=[role_everyone]))
+
+@bot.event
+async def aivlasoft_send(list):
+    ch = await interactions.get(bot, interactions.Channel, object_id=672891056001384488)
+    await ch.send(f"{emoji_aivlasoft_pda} **Aivlasoft:**\n\n{list[0]}\n{list[1]}")
 
 # Slash commands
 @bot.command(

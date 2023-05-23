@@ -24,3 +24,6 @@ async def read_feed(rss_url, pretty_name, callback):
                 elif pretty_name == "announcement":
                     return_list = [entry.title, entry.link, entry.links[1].href]
                     await callback(return_list)
+                elif pretty_name == "news":
+                    return_list = [entry.title, entry.link]
+                    await callback(return_list)
