@@ -58,7 +58,7 @@ async def announcement_send(list):
 
 @bot.event
 async def aivlasoft_send(list):
-    ch = await interactions.get(bot, interactions.Channel, object_id=672891056001384488)
+    ch = await interactions.get(bot, interactions.Channel, object_id=channel_news)
     await ch.send(f"{emoji_aivlasoft_pda} **Aivlasoft:**\n\n{list[0]}\n{list[1]}")
 
 # Slash commands
