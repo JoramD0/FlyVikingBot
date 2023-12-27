@@ -7,7 +7,7 @@ async def read_feed(rss_url, pretty_name, callback):
             original_trackfile_time = trackfile.read()
             feed = feedparser.parse(rss_url, modified=original_trackfile_time)
     else:
-        original_trackfile_time = time.strftime("%a, %d %b %Y %H:%M:%S %Z", time.gmt) # To prevent error on first run
+        original_trackfile_time = time.strftime("%a, %d %b %Y %H:%M:%S %Z", time.gmtime()) # To prevent error on first run
         feed = feedparser.parse(rss_url)
 
     # Write latest modified if new feed
@@ -26,4 +26,7 @@ async def read_feed(rss_url, pretty_name, callback):
                     await callback(return_list)
                 elif pretty_name == "aivlasoft":
                     return_list = [entry.title, entry.link]
+                    await callback(return_list)
+                elif pretty_name == "downloads":
+                    return_list = [entry.link]
                     await callback(return_list)

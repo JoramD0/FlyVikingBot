@@ -44,6 +44,7 @@ async def read_feed_discord():
         await rssParser.read_feed("https://flyviking.net/rss/1-gallery.xml/", "gallery", callback=gallery_send)
         await rssParser.read_feed("https://flyviking.net/rss/3-announcements.xml/", "announcement", callback=announcement_send)
         await rssParser.read_feed("https://forum.aivlasoft.com/forum/18-announcements.xml/", "aivlasoft", callback=aivlasoft_send)
+        await rssParser.read_feed("https://flyviking.net/rss/4-downloads.xml/", "downloads", callback=downloads_send)
         await asyncio.sleep(60)
 
 @bot.event
@@ -67,7 +68,12 @@ async def announcement_send(list):
 @bot.event
 async def aivlasoft_send(list):
     ch = await interactions.get(bot, interactions.Channel, object_id=channel_news)
-    await ch.send(f"{emoji_aivlasoft_pda} **Aivlasoft:**\n\n{list[0]}\n{list[1]}")
+    await ch.send(f"{emoji_aivlasoft_pda} **Aivlasoft:**\n\n[{list[0]}]({list[1]})")
+
+@bot.event
+async def downloads_send(link):
+    ch = await interactions.get(bot, interactions.Channel, object_id=channel_announcements)
+    await ch.send(f"## [New file available!]({link[0]})")
 
 # Slash commands
 @bot.command(

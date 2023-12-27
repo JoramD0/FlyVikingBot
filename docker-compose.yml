@@ -12,3 +12,4 @@ services:
       - ./announcement_rss_trackfile:/app/announcement_rss_trackfile
       - ./gallery_rss_trackfile:/app/gallery_rss_trackfile
       - ./aivlasoft_rss_trackfile:/app/aivlasoft_rss_trackfile
+      - ./downloads_rss_trackfile:/app/downloads_rss_trackfile
