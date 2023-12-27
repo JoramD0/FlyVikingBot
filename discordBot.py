@@ -1,6 +1,14 @@
-import fsaInterface, websiteInterface, json, logging, rssParser, asyncio, interactions
+import fsaInterface, websiteInterface, json, logging, rssParser, asyncio, interactions, sys
 
-logging.basicConfig(filename="discordBot.log", encoding="utf-8", level=logging.INFO, format="%(asctime)s %(name)s %(levelname)s: %(message)s")
+logging.basicConfig(
+    handlers=[
+        logging.FileHandler("discordBot.log"),
+        logging.StreamHandler(sys.stdout)
+    ],
+    encoding="utf-8",
+    level=logging.INFO,
+    format="%(asctime)s %(name)s %(levelname)s: %(message)s"
+)
 
 # Get credentials
 with open("credentials.json", "r", encoding="utf-8") as credentialsFile:
