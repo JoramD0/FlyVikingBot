@@ -14,7 +14,7 @@ logging.basicConfig(
 with open("credentials.json", "r", encoding="utf-8") as credentialsFile:
     credentials = json.load(credentialsFile)
 
-bot = interactions.Client(token=credentials["discordBotToken"], logging=logging.INFO)
+bot = interactions.Client(token=credentials["discordBotToken"], logger=logging.getLogger())
 
 # Roles
 role_everyone = 631900777794764830
@@ -31,11 +31,17 @@ emoji_aivlasoft_pda = "<:aivlasoft_pda:1110634345410084924>"
 emoji_aivlasoft_server = "<:aivlasoft_server:1110634344227278978>"
 emoji_arma = "<:arma:696048882202968094>"
 
-# Bot active
-@bot.event
-async def on_ready():
+async def main():
+    await bot.astart()
+
+@interactions.listen(interactions.api.events.Startup)
+async def startup_func():
     logging.info(f"Bot logged in as {bot}")
-    asyncio.Task(read_feed_discord())
+    asyncio.create_task(read_feed_discord())
+
+@interactions.listen()
+async def on_error(error: interactions.api.events.Error):
+    logging.error(error)
 
 # rssParser loop
 async def read_feed_discord():
@@ -48,12 +54,12 @@ async def read_feed_discord():
         await rssParser.read_feed("https://flyviking.net/rss/5-downloads-update.xml/", "downloads_update", callback=downloads_update_send)
         await asyncio.sleep(60)
 
-@bot.event
+@interactions.listen()
 async def gallery_send(image):
-    channel = await interactions.get(bot, interactions.Channel, object_id=channel_screenshots)
+    channel = await bot.fetch_channel(channel_id=channel_screenshots)
     await channel.send(image)
 
-@bot.event
+@interactions.listen()
 async def announcement_send(list):
     embed = interactions.Embed(
         title = list[0],
@@ -67,30 +73,30 @@ async def announcement_send(list):
     except:
         logging.info(f"No image attached to announcement {list[0]}, posting without.")
 
-    ch = await interactions.get(bot, interactions.Channel, object_id=channel_announcements)
-    await ch.send("@everyone", embeds=embed, allowed_mentions=interactions.AllowedMentions(roles=[role_everyone]))
+    channel = await bot.fetch_channel(channel_id=channel_announcements)
+    await channel.send("@everyone", embeds=embed, allowed_mentions=interactions.AllowedMentions(roles=[role_everyone]))
 
-@bot.event
+@interactions.listen()
 async def aivlasoft_send(list):
-    ch = await interactions.get(bot, interactions.Channel, object_id=channel_news)
-    await ch.send(f"{emoji_aivlasoft_pda} **Aivlasoft:**\n\n[{list[0]}]({list[1]})")
+    channel = await bot.fetch_channel(channel_id=channel_news)
+    await channel.send(f"{emoji_aivlasoft_pda} **Aivlasoft:**\n\n[{list[0]}]({list[1]})")
 
-@bot.event
+@interactions.listen()
 async def downloads_send(link):
-    ch = await interactions.get(bot, interactions.Channel, object_id=channel_announcements)
-    await ch.send(f"## [New file available!]({link[0]})")
+    channel = await bot.fetch_channel(channel_id=channel_announcements)
+    await channel.send(f"## [New file available!]({link[0]})")
 
-@bot.event
+@interactions.listen()
 async def downloads_update_send(link):
-    ch = await interactions.get(bot, interactions.Channel, object_id=channel_announcements)
-    await ch.send(f"## [New file version available!]({link[0]})")
+    channel = await bot.fetch_channel(channel_id=channel_announcements)
+    await channel.send(f"## [New file version available!]({link[0]})")
 
 # Slash commands
-@bot.command(
+@interactions.slash_command(
     name="airline_statistics",
     description="Gets various airline statistics from FSAirlines"
 )
-async def airline_statistics(ctx: interactions.CommandContext):
+async def airline_statistics(ctx: interactions.SlashContext):
     data = fsaInterface.getAirlineStats()
     if not data:
         logging.error("Could not retreive data from FSAirlines")
@@ -138,43 +144,33 @@ async def airline_statistics(ctx: interactions.CommandContext):
         )
         await ctx.send(embeds=embed)
 
-@bot.command(
+@interactions.slash_command(
     name="clear",
     description="Clears multiple message",
-    default_member_permissions=interactions.Permissions.ADMINISTRATOR,
-    options=[
-        interactions.Option(
-            name = "amount",
-            description = "Amount of messages to clear",
-            type = interactions.OptionType.INTEGER,
-            required = True
-        )
-    ]
+    default_member_permissions=interactions.Permissions.ADMINISTRATOR
 )
-async def clear(ctx: interactions.CommandContext, amount: int):
-    if 0 < amount <= 50:
-        channel = await ctx.get_channel()
-        deleted = await channel.purge(amount, bulk=True, reason=None)
-        multiple = ""
-        if len(deleted) != 1:
-            multiple = "s"
-        await ctx.send(content=f":white_check_mark: Deleted {len(deleted)} message{multiple}", ephemeral=True)
-    else:
-        await ctx.send(content=f":x: Amount needs to be between 1 and 50", ephemeral=True)
+@interactions.slash_option(
+    name="amount",
+    description = "Amount of messages to clear",
+    required = True,
+    opt_type=interactions.OptionType.INTEGER,
+    min_value=1,
+    max_value=50
+)
+async def clear(ctx: interactions.SlashContext, amount: int):
+    await ctx.channel.purge(amount, reason=None)
 
-@bot.command(
+@interactions.slash_command(
     name="paint_lookup",
-    description="Lookup aircraft paint on the website",
-    options=[
-        interactions.Option(
-            name = "query",
-            description = "Search term",
-            type = interactions.OptionType.STRING,
-            required = True
-        )
-    ]
+    description="Lookup aircraft paint on the website"
 )
-async def paint_lookup(ctx: interactions.CommandContext, query: str):
+@interactions.slash_option(
+    name = "query",
+    description = "Search term",
+    opt_type = interactions.OptionType.STRING,
+    required = True
+)
+async def paint_lookup(ctx: interactions.SlashContext, query: str):
     data = websiteInterface.fileQuery(query)
     if data is False:
         logging.error("Could not retreive data from website")
@@ -209,4 +205,4 @@ async def paint_lookup(ctx: interactions.CommandContext, query: str):
             )
         await ctx.send(embeds=embed)
 
-bot.start()
+asyncio.run(main())
