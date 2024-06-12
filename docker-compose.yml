@@ -1,4 +1,4 @@
-version: '3'
+version: '3.9'
 
 services:
   discord-bot:
@@ -13,3 +13,4 @@ services:
       - ./gallery_rss_trackfile:/app/gallery_rss_trackfile
       - ./aivlasoft_rss_trackfile:/app/aivlasoft_rss_trackfile
       - ./downloads_rss_trackfile:/app/downloads_rss_trackfile
+      - ./downloads_update_rss_trackfile:/app/downloads_update_rss_trackfile

@@ -45,6 +45,7 @@ async def read_feed_discord():
         await rssParser.read_feed("https://flyviking.net/rss/3-announcements.xml/", "announcement", callback=announcement_send)
         await rssParser.read_feed("https://forum.aivlasoft.com/forum/18-announcements.xml/", "aivlasoft", callback=aivlasoft_send)
         await rssParser.read_feed("https://flyviking.net/rss/4-downloads.xml/", "downloads", callback=downloads_send)
+        await rssParser.read_feed("https://flyviking.net/rss/5-downloads-update.xml/", "downloads_update", callback=downloads_update_send)
         await asyncio.sleep(60)
 
 @bot.event
@@ -59,9 +60,13 @@ async def announcement_send(list):
         url = list[1],
         color = 0xed2001
     )
-    embed.set_thumbnail(
-        url = list[2]
-    )
+    try:
+        embed.set_thumbnail(
+            url = list[2]
+        )
+    except:
+        logging.info(f"No image attached to announcement {list[0]}, posting without.")
+
     ch = await interactions.get(bot, interactions.Channel, object_id=channel_announcements)
     await ch.send("@everyone", embeds=embed, allowed_mentions=interactions.AllowedMentions(roles=[role_everyone]))
 
@@ -75,6 +80,11 @@ async def downloads_send(link):
     ch = await interactions.get(bot, interactions.Channel, object_id=channel_announcements)
     await ch.send(f"## [New file available!]({link[0]})")
 
+@bot.event
+async def downloads_update_send(link):
+    ch = await interactions.get(bot, interactions.Channel, object_id=channel_announcements)
+    await ch.send(f"## [New file version available!]({link[0]})")
+
 # Slash commands
 @bot.command(
     name="airline_statistics",
@@ -87,7 +97,7 @@ async def airline_statistics(ctx: interactions.CommandContext):
         await ctx.send(":x: ERROR: Could not retreive data from FSAirlines", ephemeral=True)
     else:
         embed = interactions.Embed(
-            title = "Airline Statistics",
+            title = f"{emoji_flyvikingv} Airline Statistics",
             description = "Various airline-wide statistics",
             color = 0xed2001
         )
