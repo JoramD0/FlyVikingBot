@@ -100,7 +100,7 @@ async def airline_statistics(ctx: interactions.SlashContext):
     data = fsaInterface.getAirlineStats()
     if not data:
         logging.error("Could not retreive data from FSAirlines")
-        await ctx.send(":x: ERROR: Could not retreive data from FSAirlines", ephemeral=True)
+        await ctx.send(":x: ERROR: Could not retreive data from FSAirlines", ephemeral=True, delete_after=10)
     else:
         embed = interactions.Embed(
             title = f"{emoji_flyvikingv} Airline Statistics",
@@ -159,7 +159,7 @@ async def airline_statistics(ctx: interactions.SlashContext):
 )
 async def clear(ctx: interactions.SlashContext, amount: int):
     await ctx.channel.purge(amount, reason=None)
-    await ctx.channel.send(f":white_check_mark: deleted messages", ephemeral=True, delete_after=10)
+    await ctx.send(f":white_check_mark: Deleted {amount} messages.", ephemeral=True, delete_after=10)
 
 @interactions.slash_command(
     name="paint_lookup",
@@ -175,14 +175,14 @@ async def paint_lookup(ctx: interactions.SlashContext, query: str):
     data = websiteInterface.fileQuery(query)
     if data is False:
         logging.error("Could not retreive data from website")
-        await ctx.send(f":x: ERROR: Could not retreive data from website", ephemeral=True)
+        await ctx.send(f":x: ERROR: Could not retreive data from website", ephemeral=True, delete_after=10)
     elif type(data) is int:
         if data > 1:
-            logging.info("Too many matches")
-            await ctx.send(":x: ERROR: Too many matches", ephemeral=True)
+            logging.info(f"Too many matches")
+            await ctx.send(":x: ERROR: Too many matches", ephemeral=True, delete_after=10)
         else:
             logging.info("No matches")
-            await ctx.send(":x: ERROR: No matches", ephemeral=True)
+            await ctx.send(":x: ERROR: No matches", ephemeral=True, delete_after=10)
     else:
         embed = interactions.Embed(
             title = data["title"],
