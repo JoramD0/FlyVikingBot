@@ -159,6 +159,7 @@ async def airline_statistics(ctx: interactions.SlashContext):
 )
 async def clear(ctx: interactions.SlashContext, amount: int):
     await ctx.channel.purge(amount, reason=None)
+    await ctx.channel.send(f":white_check_mark: deleted messages", ephemeral=True, delete_after=10)
 
 @interactions.slash_command(
     name="paint_lookup",
