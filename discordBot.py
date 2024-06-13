@@ -38,7 +38,7 @@ async def main():
 async def startup_func():
     logging.info(f"Bot logged in as {bot}")
     asyncio.create_task(read_feed_discord())
-    asyncio.create_task(webhook())
+    asyncio.create_task(webhook.app.run())
 
 @interactions.listen()
 async def on_error(error: interactions.api.events.Error):

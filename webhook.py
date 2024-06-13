@@ -6,6 +6,3 @@ app = Flask(__name__)
 def webhook_receiver():
     data = request.json
     logging.info(f"webhook: {data}")
-
-if __name__ == '__main__':
-    app.run(debug=True)
