@@ -7,13 +7,13 @@ async def read_feed(rss_url, pretty_name, callback):
             original_trackfile_time = trackfile.read()
             try:
                 feed = feedparser.parse(rss_url, modified=original_trackfile_time)
-            else:
+            except:
                 logging.error("rssParser: failed to read feed")
     else:
         original_trackfile_time = time.strftime("%a, %d %b %Y %H:%M:%S %z", time.gmtime()) # To prevent error on first run
         try:
             feed = feedparser.parse(rss_url)
-        else:
+        except:
             logging.error("rssParser: failed to read feed")
 
     # Write latest modified if new feed
