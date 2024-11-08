@@ -49,7 +49,7 @@ async def read_feed_discord():
         # ("link", "pretty_name", callback)
         await rssParser.read_feed("https://flyviking.net/rss/1-gallery.xml/", "gallery", callback=gallery_send)
         await rssParser.read_feed("https://flyviking.net/rss/3-announcements.xml/", "announcement", callback=announcement_send)
-        await rssParser.read_feed("https://forum.aivlasoft.com/forum/18-announcements.xml/", "aivlasoft", callback=aivlasoft_send)
+        #await rssParser.read_feed("https://forum.aivlasoft.com/forum/18-announcements.xml/", "aivlasoft", callback=aivlasoft_send) # No longer available
         await rssParser.read_feed("https://flyviking.net/rss/4-downloads.xml/", "downloads", callback=downloads_send)
         await rssParser.read_feed("https://flyviking.net/rss/5-downloads-update.xml/", "downloads_update", callback=downloads_update_send)
         await asyncio.sleep(60)
