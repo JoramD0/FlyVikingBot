@@ -1,4 +1,4 @@
-import fsaInterface, websiteInterface, json, logging, rssParser, asyncio, interactions, sys
+import fsaInterface, websiteInterface, json, logging, rssParser, asyncio, interactions, sys, requests
 
 logging.basicConfig(
     handlers=[
@@ -13,6 +13,14 @@ logging.basicConfig(
 # Get credentials
 with open("credentials.json", "r", encoding="utf-8") as credentialsFile:
     credentials = json.load(credentialsFile)
+
+# Uptime Kuma
+async def start_status():
+    # Endlessly push to Uptime Kuma in background as per heartbeat. Stop if stop variable is set.
+    while True:
+        requests.get(credentials["uptimeKumaURL"]) # Kuma push
+        logging.info("Uptime Kuma: pushed heartbeat") # Console log
+        await asyncio.sleep(60) # Sleep for heartbeat
 
 bot = interactions.Client(token=credentials["discordBotToken"], logger=logging.getLogger())
 
@@ -38,6 +46,7 @@ async def main():
 async def startup_func():
     logging.info(f"Bot logged in as {bot}")
     asyncio.create_task(read_feed_discord())
+    asyncio.create_task(start_status())
 
 @interactions.listen()
 async def on_error(error: interactions.api.events.Error):
